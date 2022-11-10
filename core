@@ -1,0 +1,47 @@
+#!/bin/bash
+
+install() {
+  # get system os/arch
+  local arch="$PACKAGE_OS_ARCH"
+  local kernel="$PACKAGE_OS_KERNEL"
+  local platform="$PACKAGE_OS_PLATFORM"
+  # usr_bin_dir
+  local usr_bin_dir="$PACKAGE_USER_BIN_DIR"
+  local tmp_dir="$PACKAGE_TMP_DIR"
+
+  # prepare vars
+  local name="sealos"
+  # files
+  local tmp_file="$name.tar.gz"
+  local bin_file="./$name"
+
+  if [ "$(os::is_macos)" = "true" ]; then
+    log::error "[$(timestamp)] Mac OS is not supported"
+    return 1
+  fi
+
+  # prepare context
+  cd $tmp_dir
+
+  # reference: https://github.com/labring/sealos/releases
+  # example:
+  #   https://github.com/labring/sealos/releases/download/v4.1.3/sealos_4.1.3_linux_arm64.tar.gz
+  #   https://github.com/labring/sealos/releases/download/v4.1.3/sealos_4.1.3_linux_amd64.tar.gz
+  # generate url
+  local url="https://github.com/labring/sealos/releases/download/$PACKAGE_CORE_VERSION/${name}_${PACKAGE_CORE_VERSION#v}_${platform}_${arch}.tar.gz"
+  log::debug "[package][$name][$kernel][$arch] url: $url"
+
+  # download
+  os::download $tmp_file $url
+
+  # extract
+  tar -zxvf $tmp_file >>/dev/null 2>&1
+
+  # install
+  sudo mv $bin_file $usr_bin_dir
+
+  # clean
+  rm -rf $tmp_dir
+}
+
+export -f install
